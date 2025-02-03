@@ -63,38 +63,6 @@ export const register = async (username: string, email: string, password: string
     }
   };
 
-
-
-
-
-// Obtener notificaciones con autenticación y rango de fechas
-export const fetchNotifications = async (startDate: string, endDate: string) => {
-  try {
-    const token = localStorage.getItem("token"); // Asegúrate de haber guardado el token al iniciar sesión
-
-    if (!token) {
-      throw new Error("No se encontró el token de autenticación.");
-    }
-
-    const response = await fetch(`${API_URL}/checkout/webhook?start_date=${startDate}&end_date=${endDate}`, {
-      method: "POST",  
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`  // 🔑 Agregar el token de autenticación
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-    throw error;
-  }
-};
-
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {

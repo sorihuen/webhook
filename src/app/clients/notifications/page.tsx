@@ -5,7 +5,6 @@ import { NotificationItem } from "@/components/NotificacionItem";
 import { Modal } from "@/components/modal/cardModal";
 import { SearchComponent } from "@/components/SearchComponent";
 import { VerticalLayout } from "@/components/VerticalLayout";
-import { fetchNotifications } from "@/app/apiService/apiService";
 
 interface ApiNotification {
   id: number;
@@ -54,48 +53,51 @@ export default function NotificationsPage() {
     status: notif.status,
   });
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    loadNotifications();
-  }, []);
-
   const loadNotifications = async () => {
     try {
       setLoading(true);
-      const url = new URL('http://localhost:5055/api/payments');
-      const params = new URLSearchParams();
-      params.append('startDate', startDate);
-      params.append('endDate', endDate);
-      url.search = params.toString();
-
       const token = localStorage.getItem("token");
-      const response = await fetch(url.toString(), {
+      
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      const url = `http://localhost:5055/api/checkout/webhook?start_date=${startDate}&end_date=${endDate}`;
+      
+      const response = await fetch(url, {
+        method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const result = await response.json();
-      
-      if (response.ok && result.data) {
-        const formattedData = result.data.map(formatNotificationData);
-        setNotifications(formattedData);
-        setFilteredNotifications(formattedData);
-        setError("");
-      } else {
-        setError(result.message || "Error al cargar notificaciones");
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
+
+      const data = await response.json();
+      console.log("Datos recibidos:", data);
+      
+      const formattedData = data.map(formatNotificationData);
+      setNotifications(formattedData);
+      setFilteredNotifications(formattedData);
+      setError("");
     } catch (err) {
       console.error("Error al cargar:", err);
-      setError("Error al cargar notificaciones.");
+      setError(err instanceof Error ? err.message : "Error al cargar notificaciones");
+      setFilteredNotifications([]);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadNotifications();
+  }, [startDate, endDate]); 
+
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-
     const filtered = notifications.filter(
       (notif) =>
         notif.message.toLowerCase().includes(term.toLowerCase()) ||
@@ -107,44 +109,7 @@ export default function NotificationsPage() {
   const handleDateChange = async (newStartDate: string, newEndDate: string) => {
     setStartDate(newStartDate);
     setEndDate(newEndDate);
-
-    const currentStatus = filterState.toLowerCase();
-    const token = localStorage.getItem("token");
-    
-    try {
-      setLoading(true);
-      const url = new URL('http://localhost:5055/api/payments');
-      
-      const params = new URLSearchParams();
-      if (currentStatus) params.append('status', currentStatus);
-      params.append('startDate', newStartDate);
-      params.append('endDate', newEndDate);
-      url.search = params.toString();
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.data) {
-        const formattedData = result.data.map(formatNotificationData);
-        setFilteredNotifications(formattedData);
-        setNotifications(formattedData); // Actualizar también las notificaciones base
-        setError("");
-      } else {
-        setError(result.message || "Error al filtrar por fechas");
-        setFilteredNotifications([]);
-      }
-    } catch (err) {
-      console.error("Error al filtrar por fechas:", err);
-      setError("Error al filtrar por fechas");
-      setFilteredNotifications([]);
-    } finally {
-      setLoading(false);
-    }
+    // loadNotifications se ejecutará automáticamente debido al useEffect
   };
 
   const handleFilterChange = (filter: string) => {
@@ -172,40 +137,12 @@ export default function NotificationsPage() {
     setFilterState(backendStatus);
 
     if (backendStatus) {
-      const token = localStorage.getItem("token");
-      const url = new URL('http://localhost:5055/api/payments');
-      
-      const params = new URLSearchParams();
-      params.append('status', backendStatus);
-      params.append('startDate', startDate);
-      params.append('endDate', endDate);
-      url.search = params.toString();
-
-      fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((response) => {
-          console.log("Datos recibidos:", response);
-          if (response.data && Array.isArray(response.data)) {
-            const formattedData = response.data.map(formatNotificationData);
-            setFilteredNotifications(formattedData);
-            setError("");
-          } else {
-            setError(response.message || "No se encontraron notificaciones");
-            setFilteredNotifications([]);
-          }
-        })
-        .catch((err) => {
-          console.error("Error al filtrar:", err);
-          setError("Error al filtrar notificaciones");
-          setFilteredNotifications([]);
-        });
+      const filtered = notifications.filter(
+        (notif) => notif.status.toLowerCase() === backendStatus
+      );
+      setFilteredNotifications(filtered);
     } else {
       setFilteredNotifications(notifications);
-      setError("");
     }
   };
 
@@ -220,19 +157,19 @@ export default function NotificationsPage() {
 
   return (
     <VerticalLayout>
-      <div className="p-6">
-        <header className="w-full bg-gradient-to-r from-green-300 to-green-500 shadow-lg py-6 px-6">
-          <div className="max-w-4xl w-full mx-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold text-blue-800 text-center">
+      <div className="px-4 md:px-6 py-4 md:py-6 max-w-full">
+        <header className="w-full bg-gradient-to-r from-green-300 to-green-500 shadow-lg py-4 md:py-6 px-4 md:px-6">
+          <div className="max-w-full w-full mx-auto">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-800 text-center">
               Payment Notifications
             </h1>
           </div>
         </header>
-
-        <main className="flex-grow w-full mt-6">
-          <div className="bg-gray-200 p-6 grid gap-6">
-            <div className="col-span-full">
-              <SearchComponent 
+  
+        <main className="w-full mt-4 md:mt-6">
+          <div className="bg-gray-200 p-4 md:p-6">
+            <div className="mb-4 md:mb-6">
+              <SearchComponent
                 onSearch={handleSearch}
                 onFilterChange={handleFilterChange}
                 onDateChange={handleDateChange}
@@ -240,17 +177,17 @@ export default function NotificationsPage() {
                 endDate={endDate}
               />
             </div>
-
+  
             {loading ? (
-              <div className="col-span-full text-center">
+              <div className="text-center">
                 <p className="text-gray-600">Cargando notificaciones...</p>
               </div>
             ) : error ? (
-              <div className="col-span-full text-center">
+              <div className="text-center">
                 <p className="text-red-600">{error}</p>
               </div>
             ) : filteredNotifications.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 {filteredNotifications.map((notif) => (
                   <NotificationItem
                     key={notif.id}
@@ -263,50 +200,43 @@ export default function NotificationsPage() {
                 ))}
               </div>
             ) : (
-              <div className="col-span-full text-center">
+              <div className="text-center">
                 <p className="text-gray-600">No se encontraron notificaciones</p>
               </div>
             )}
           </div>
         </main>
-
+  
         <Modal isOpen={!!selectedNotification} onClose={closeModal}>
           {selectedNotification && (
-            <div className="p-4">
-              <h2 className="text-lg sm:text-xl font-bold mb-4">
-                {selectedNotification.message}
-              </h2>
-              <p className="mb-2 text-sm sm:text-base">
-                {selectedNotification.details}
-              </p>
+            <div className="p-4 md:p-6 max-w-full">
+              <h2 className="text-lg md:text-xl font-bold mb-4">{selectedNotification.message}</h2>
+              <p className="mb-2 text-sm md:text-base">{selectedNotification.details}</p>
               {selectedNotification.amount && (
-                <p className="mb-2 text-sm sm:text-base">
-                  Amount: ${selectedNotification.amount.toFixed(2)}
-                </p>
+                <p className="mb-2 text-sm md:text-base">Amount: ${selectedNotification.amount.toFixed(2)}</p>
               )}
               {selectedNotification.status && (
-                <p className="mb-2 text-sm sm:text-base">
+                <p className="mb-2 text-sm md:text-base">
                   Status:{" "}
                   <span
                     className={`font-bold ${
                       selectedNotification.status === "Completed"
                         ? "text-green-600"
                         : selectedNotification.status === "Pending"
-                          ? "text-yellow-600"
-                          : "text-blue-600"
+                        ? "text-yellow-600"
+                        : "text-blue-600"
                     }`}
                   >
                     {selectedNotification.status}
                   </span>
                 </p>
               )}
-              <p className="text-xs sm:text-sm text-gray-500">
-                Date: {selectedNotification.date}
-              </p>
+              <p className="text-xs md:text-sm text-gray-500">Date: {selectedNotification.date}</p>
             </div>
           )}
         </Modal>
       </div>
     </VerticalLayout>
   );
+  
 }
