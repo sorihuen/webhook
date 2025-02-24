@@ -113,3 +113,13 @@ export const apiPostNoAuth = async(url: string, body: object, auth: boolean ) =>
       }
   }
 };
+
+export const apiGetNotifications = async (startDate: string, endDate: string) => {
+  try {
+    const url = `/checkout/webhook?start_date=${startDate}&end_date=${endDate}`;
+    return await apiPostNoAuth(url, {}, true);
+  } catch (error) {
+    console.error("Error obteniendo notificaciones:", error);
+    throw error;
+  }
+};

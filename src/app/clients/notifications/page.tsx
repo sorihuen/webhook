@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { NotificationItem } from "@/components/NotificacionItem";
 import { Modal } from "@/components/modal/cardModal";
 import { SearchComponent } from "@/components/SearchComponent";
 import { VerticalLayout } from "@/components/VerticalLayout";
+import { apiGetNotifications } from "@/app/apiService/apiService";
 
 interface ApiNotification {
   id: number;
@@ -30,11 +31,9 @@ export default function NotificationsPage() {
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   );
-  const [endDate, setEndDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterState, setFilterState] = useState("");
   const [loading, setLoading] = useState(true);
@@ -46,7 +45,7 @@ export default function NotificationsPage() {
     date: new Intl.DateTimeFormat("es-ES", {
       year: "numeric",
       month: "long",
-      day: "2-digit"
+      day: "2-digit",
     }).format(new Date(notif.date)),
     details: `Paid via ${notif.bank} using ${notif.paymentMethod}.`,
     amount: notif.amount,
@@ -56,44 +55,24 @@ export default function NotificationsPage() {
   const loadNotifications = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
-      
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
-
-      const url = `http://localhost:5055/api/checkout/webhook?start_date=${startDate}&end_date=${endDate}`;
-      
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("Datos recibidos:", data);
+      const data = await apiGetNotifications(startDate, endDate);
       
       const formattedData = data.map(formatNotificationData);
       setNotifications(formattedData);
       setFilteredNotifications(formattedData);
       setError("");
     } catch (err) {
-      console.error("Error al cargar:", err);
+      console.error("Error al cargar notificaciones:", err);
       setError(err instanceof Error ? err.message : "Error al cargar notificaciones");
       setFilteredNotifications([]);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     loadNotifications();
-  }, [startDate, endDate]); 
+  }, [startDate, endDate]);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -112,7 +91,7 @@ export default function NotificationsPage() {
 
   const handleFilterChange = (filter: string) => {
     let backendStatus = "";
-    
+
     console.log(`Estado seleccionado: ${filter}`);
 
     switch (filter) {
@@ -163,7 +142,7 @@ export default function NotificationsPage() {
             </h1>
           </div>
         </header>
-  
+
         <main className="w-full mt-4 md:mt-6">
           <div className="bg-gray-200 p-4 md:p-6">
             <div className="mb-4 md:mb-6">
@@ -175,7 +154,7 @@ export default function NotificationsPage() {
                 endDate={endDate}
               />
             </div>
-  
+
             {loading ? (
               <div className="text-center">
                 <p className="text-gray-600">Cargando notificaciones...</p>
@@ -204,23 +183,25 @@ export default function NotificationsPage() {
             )}
           </div>
         </main>
-  
+
         <Modal isOpen={!!selectedNotification} onClose={closeModal}>
           {selectedNotification && (
             <div className="p-4 md:p-6 max-w-full">
               <h2 className="text-lg md:text-xl font-bold mb-4">{selectedNotification.message}</h2>
               <p className="mb-2 text-sm md:text-base">{selectedNotification.details}</p>
               {selectedNotification.amount && (
-                <p className="mb-2 text-sm md:text-base">Amount: ${selectedNotification.amount.toFixed(2)}</p>
+                <p className="mb-2 text-sm md:text-base">
+                  Amount: ${selectedNotification.amount.toFixed(2)}
+                </p>
               )}
               {selectedNotification.status && (
                 <p className="mb-2 text-sm md:text-base">
                   Status:{" "}
                   <span
                     className={`font-bold ${
-                      selectedNotification.status === "Completed"
+                      selectedNotification.status.toLowerCase() === "success"
                         ? "text-green-600"
-                        : selectedNotification.status === "Pending"
+                        : selectedNotification.status.toLowerCase() === "pending"
                         ? "text-yellow-600"
                         : "text-blue-600"
                     }`}
@@ -236,5 +217,5 @@ export default function NotificationsPage() {
       </div>
     </VerticalLayout>
   );
-  
 }
+
