@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { register } from "../apiService/apiService"; 
+import { register, apiPostNoAuth } from "../apiService/apiService"; 
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -19,8 +19,7 @@ export default function RegisterPage() {
     setLoading(true); // Iniciar carga
 
     try {
-      await register(username, email, password); // Usar la función register
-
+      await apiPostNoAuth('/auth/register',{username, email, password}, false); // Usar la función apiPost
       // Redirigir a otra página en caso de éxito
       router.push("/");
     } catch (err) {

@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Webhook - Next.js Project
 
-## Getting Started
+Este es un proyecto basado en [Next.js](https://nextjs.org), inicializado con [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-First, run the development server:
+## 🚀 Configuración y Ejecución
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Para comenzar con el desarrollo, sigue estos pasos:
+
+1. Clona el repositorio:
+   ```sh
+   git clone <URL_DEL_REPOSITORIO>
+   cd webhook
+   ```
+
+2. Instala las dependencias utilizando tu gestor de paquetes preferido:
+   ```sh
+   npm install  # o yarn install, pnpm install, bun install
+   ```
+
+3. Inicia el servidor de desarrollo:
+   ```sh
+   npm run dev  # o yarn dev, pnpm dev, bun dev
+   ```
+
+4. Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación en ejecución.
+
+## 📂 Estructura del Proyecto
+
+```
+webhook/
+├── app/               # Componentes y páginas principales
+│   ├── page.tsx      # Página de inicio
+├── public/            # Archivos estáticos
+├── styles/            # Estilos globales y Tailwind
+├── package.json       # Configuración del proyecto
+└── next.config.js     # Configuración de Next.js
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📦 Dependencias Principales
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Este proyecto utiliza las siguientes tecnologías y librerías:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework:** [Next.js 15.1.6](https://nextjs.org/)
+- **UI & Animaciones:** [Tailwind CSS](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/), [Lucide React](https://lucide.dev/)
+- **Gráficos:** [Chart.js](https://www.chartjs.org/), [Recharts](https://recharts.org/)
+- **Otros:** [clsx](https://github.com/lukeed/clsx) para clases condicionales, [autoprefixer](https://github.com/postcss/autoprefixer) para CSS
 
-## Learn More
+## 🛠 Scripts Disponibles
 
-To learn more about Next.js, take a look at the following resources:
+En el archivo `package.json`, se encuentran los siguientes scripts:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run dev` - Inicia el servidor de desarrollo.
+- `npm run build` - Compila la aplicación para producción.
+- `npm run start` - Inicia la aplicación en modo producción.
+- `npm run lint` - Ejecuta el linter de código.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📖 Recursos Adicionales
 
-## Deploy on Vercel
+Para más información sobre Next.js, visita:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [Documentación de Next.js](https://nextjs.org/docs) - Aprende sobre sus características y API.
+- [Tutorial interactivo](https://nextjs.org/learn) - Guía práctica de Next.js.
+- [Repositorio en GitHub](https://github.com/vercel/next.js) - Contribuye o reporta problemas.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🌎 Despliegue
+
+Este proyecto no está desplegado en Vercel, pero puedes desplegarlo en cualquier servidor compatible con Node.js.
+Para más información, consulta la [documentación de despliegue](https://nextjs.org/docs/app/building-your-application/deploying).
+
+---
+📌 **Autor:** [Suyin Orihuen]  
+📆 **Última actualización:** [24/02/25]
+

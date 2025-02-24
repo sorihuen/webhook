@@ -2,7 +2,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from "next/navigation";
-import { login } from "./apiService/apiService";
+import { login, apiPostNoAuth } from "./apiService/apiService";
 
 
 export default function LoginPage() {
@@ -14,24 +14,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');  // Limpiar errores previos
-
-    try {
-      const data = await login(email, password);  // Llamada a la API de login
-      if (data.success) {
-        // Guardar el token en localStorage
-        localStorage.setItem("authToken", data.data.token);
-        // Redirigir al usuario después de un login exitoso
-        router.push("clients/notifications"); // Cambia esto al destino correcto
-      } else {
-        setError("Credenciales incorrectas");
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Ocurrió un error inesperado");
-      }
-    }
+    await apiPostNoAuth('/auth/login',{email, password}, true).then(res => {
+      localStorage.setItem("authToken", res.data.token);
+      router.push("clients/notifications");
+    }).catch (err => {setError(err.message)});
   };
 
   return (

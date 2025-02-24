@@ -56,7 +56,7 @@ export default function NotificationsPage() {
   const loadNotifications = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("authToken");
       
       if (!token) {
         throw new Error("No se encontró el token de autenticación");
@@ -91,7 +91,6 @@ export default function NotificationsPage() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadNotifications();
   }, [startDate, endDate]); 
@@ -109,7 +108,6 @@ export default function NotificationsPage() {
   const handleDateChange = async (newStartDate: string, newEndDate: string) => {
     setStartDate(newStartDate);
     setEndDate(newEndDate);
-    // loadNotifications se ejecutará automáticamente debido al useEffect
   };
 
   const handleFilterChange = (filter: string) => {

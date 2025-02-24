@@ -64,7 +64,7 @@ export const register = async (username: string, email: string, password: string
   };
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
   return {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
@@ -94,3 +94,22 @@ export const api = {
     }
   },
 }
+
+export const apiPostNoAuth = async(url: string, body: object, auth: boolean ) => {
+  try{
+    const response = await fetch(`${API_URL}${url}`, {
+      method: "POST",
+      headers: auth ? getAuthHeaders() : {"Content-Type": "application/json",},
+      body: JSON.stringify(body)
+    });
+    if (!response){throw new Error("Error de la respuesta");}
+    return response.json()
+  }catch
+    (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(error.message || "Error de red");
+      } else {
+        throw new Error("Error desconocido");
+      }
+  }
+};
