@@ -4,17 +4,26 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import type { ReactNode } from "react";
-
+import { useRouter } from "next/navigation"; // Para redirigir después del logout
 
 interface VerticalLayoutProps {
   children: ReactNode
 }
 
-
 export function VerticalLayout({ children }: VerticalLayoutProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter(); // Hook para manejar la navegación
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  // Función para manejar el cierre de sesión
+  const handleLogout = () => {
+    // Eliminar el token del localStorage
+    localStorage.removeItem("authToken");
+    // Redirigir a la página de login
+    router.push("/");
+    setIsMenuOpen(false);
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-yellow-50 via-yellow-200 to-yellow-50">
@@ -69,13 +78,13 @@ export function VerticalLayout({ children }: VerticalLayoutProps) {
             </Link>
           </li>
           <li>
-            <Link
-              href="/"
-              className="block px-6 py-3 text-blue-700 hover:bg-yellow-200 hover:text-blue-900 transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
+            {/* Botón de logout en lugar de Link */}
+            <button
+              onClick={handleLogout}
+              className="block w-full text-left px-6 py-3 text-blue-700 hover:bg-yellow-200 hover:text-blue-900 transition-colors duration-200"
             >
               Close
-            </Link>
+            </button>
           </li>
         </ul>
       </nav>
@@ -83,7 +92,5 @@ export function VerticalLayout({ children }: VerticalLayoutProps) {
       {/* Contenido principal */}
       <main className="flex-1 p-6 lg:p-8">{children}</main>
     </div>
-  )
+  );
 }
-
-

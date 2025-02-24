@@ -6,6 +6,7 @@ import { Modal } from "@/components/modal/cardModal";
 import { SearchComponent } from "@/components/SearchComponent";
 import { VerticalLayout } from "@/components/VerticalLayout";
 import { apiGetNotifications } from "@/app/apiService/apiService";
+import { useRouter } from "next/navigation";
 
 interface ApiNotification {
   id: number;
@@ -31,13 +32,14 @@ export default function NotificationsPage() {
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] // Últimos 7 días
   );
-  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]); // Hoy
   const [searchTerm, setSearchTerm] = useState("");
   const [filterState, setFilterState] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); // Para errores críticos
+  const router = useRouter();
 
   const formatNotificationData = (notif: ApiNotification): Notification => ({
     id: notif.id,
@@ -55,16 +57,34 @@ export default function NotificationsPage() {
   const loadNotifications = async () => {
     try {
       setLoading(true);
+      setError(""); // Limpiar errores previos
+
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        router.push("/pageLogin");
+        return;
+      }
+
       const data = await apiGetNotifications(startDate, endDate);
-      
+      console.log("Notificaciones recibidas:", data);
+
+      if (!Array.isArray(data)) {
+        throw new Error("La respuesta de la API no es un array válido");
+      }
+
       const formattedData = data.map(formatNotificationData);
       setNotifications(formattedData);
       setFilteredNotifications(formattedData);
-      setError("");
     } catch (err) {
       console.error("Error al cargar notificaciones:", err);
-      setError(err instanceof Error ? err.message : "Error al cargar notificaciones");
+      const errorMessage = err instanceof Error ? err.message : "Error desconocido";
+      setError(`Error al cargar las notificaciones: ${errorMessage}`);
       setFilteredNotifications([]);
+      
+      if (err instanceof Error && err.message.includes("401")) {
+        localStorage.removeItem("authToken");
+        router.push("/pageLogin");
+      }
     } finally {
       setLoading(false);
     }
@@ -84,14 +104,13 @@ export default function NotificationsPage() {
     setFilteredNotifications(filtered);
   };
 
-  const handleDateChange = async (newStartDate: string, newEndDate: string) => {
+  const handleDateChange = (newStartDate: string, newEndDate: string) => {
     setStartDate(newStartDate);
     setEndDate(newEndDate);
   };
 
   const handleFilterChange = (filter: string) => {
     let backendStatus = "";
-
     console.log(`Estado seleccionado: ${filter}`);
 
     switch (filter) {
@@ -161,7 +180,7 @@ export default function NotificationsPage() {
               </div>
             ) : error ? (
               <div className="text-center">
-                <p className="text-red-600">{error}</p>
+                <p className="text-red-600">{error}</p> {/* Solo errores críticos */}
               </div>
             ) : filteredNotifications.length > 0 ? (
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
@@ -178,7 +197,9 @@ export default function NotificationsPage() {
               </div>
             ) : (
               <div className="text-center">
-                <p className="text-gray-600">No se encontraron notificaciones</p>
+                <p className="text-gray-600">
+                  No se encontraron notificaciones para el rango de fechas seleccionado
+                </p>
               </div>
             )}
           </div>
@@ -218,4 +239,3 @@ export default function NotificationsPage() {
     </VerticalLayout>
   );
 }
-

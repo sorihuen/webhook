@@ -63,37 +63,45 @@ export const register = async (username: string, email: string, password: string
     }
   };
 
+// Función de dashboard
+
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem("authToken");
   return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json",
   };
 };
 
-// Función de dashboard
-
 export const api = {
-  // Dashboard endpoints
   getDashboardStats: async () => {
     try {
       const response = await fetch(`${API_URL}/dashboard`, {
-        method: 'GET',
-        headers: getAuthHeaders()
+        method: "GET",
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.status === 404) {
+          // Devolvemos un objeto vacío con la estructura esperada
+          return {
+            successfulTransactions: 0,
+            totalAmount: 0,
+            topPaymentMethods: [],
+          };
+        }
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
-      return data;
+      return data; // Los datos ya tienen la estructura correcta
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      throw error;
+      console.error("Error fetching dashboard stats:", error);
+      throw error; // Otros errores se propagan
     }
   },
-}
+};
 
 export const apiPostNoAuth = async(url: string, body: object, auth: boolean ) => {
   try{
@@ -114,12 +122,37 @@ export const apiPostNoAuth = async(url: string, body: object, auth: boolean ) =>
   }
 };
 
+
+// Función para obtener notificaciones
 export const apiGetNotifications = async (startDate: string, endDate: string) => {
   try {
-    const url = `/checkout/webhook?start_date=${startDate}&end_date=${endDate}`;
-    return await apiPostNoAuth(url, {}, true);
+    const token = localStorage.getItem("authToken");
+    const url = `${API_URL}/payments?startDate=${startDate}&endDate=${endDate}`;
+    console.log("URL solicitada:", url);
+    console.log("Token enviado:", token);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // En lugar de lanzar un error, devolvemos un array vacío para el 404
+        return [];
+      }
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("Respuesta completa del backend:", result);
+    return result.data; // Devuelve el array de notificaciones
   } catch (error) {
     console.error("Error obteniendo notificaciones:", error);
-    throw error;
+    throw error; // Otros errores (401, 500, etc.) se propagan
   }
 };
